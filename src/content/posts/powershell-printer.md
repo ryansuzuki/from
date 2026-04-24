@@ -1,10 +1,11 @@
-post    
 ---
-title: "Powershell Script for Downloading Printer Driver and Installing It"
+title: "PowerShell Script for Downloading and Installing a Printer Driver"
 date: 2026-04-23
-time: 19:14
 type: log
 tags: [work]
-description: "Created a Powershell script that downloads and unzips a Kyocera printer driver.  The it creates a network printer port and installs a driver.   Takes a 10 minutes manual install and automates it into about 1 min. [GitHub]<https://github.com/ryansuzuki/kyocera4012>"
+description: "Automated a 10-minute Kyocera printer install down to about 1 minute."
 ---
 
+Script automates downloading and unzipping the Kyocera driver, creating the network printer port, and installing the driver.
+
+[View on GitHub](https://github.com/ryansuzuki/kyocera4012)
