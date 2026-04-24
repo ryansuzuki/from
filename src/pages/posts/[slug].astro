@@ -1,0 +1,49 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+
+export async function getStaticPaths() {
+  const posts = await getCollection('posts');
+  return posts.map(post => ({
+    params: { slug: post.slug },
+    props: { post },
+  }));
+}
+
+const { post } = Astro.props;
+const { Content } = await post.render();
+
+function formatDate(d: Date) {
+  return d.toLocaleDateString('en-US', {
+    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+  });
+}
+---
+
+<Base title={`${post.data.title} — Ryan Suzuki`}>
+  <div class="post-page">
+    <a href="/" class="back-link">← all posts</a>
+
+    <header class="post-page-header">
+      <div class="post-page-meta">
+        <span class="post-date">{formatDate(post.data.date)}</span>
+        <span class={`post-type-badge ${post.data.type}`}>
+          {post.data.type === 'log' ? 'Log' : 'Post'}
+        </span>
+      </div>
+      <h1 class="post-page-title">{post.data.title}</h1>
+      {post.data.description && (
+        <p class="post-description" style="margin-top: 0.75rem;">{post.data.description}</p>
+      )}
+      <div class="post-tags" style="margin-top: 1rem;">
+        {post.data.tags.map(tag => (
+          <span class="post-tag">{tag}</span>
+        ))}
+      </div>
+    </header>
+
+    <article class="prose">
+      <Content />
+    </article>
+  </div>
+</Base>

@@ -1,0 +1,111 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../layouts/Base.astro';
+
+const allPosts = await getCollection('posts');
+const sorted = allPosts.sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
+
+// Collect all unique tags across all posts
+const allTags = [...new Set(sorted.flatMap(p => p.data.tags))].sort();
+
+function formatDate(d: Date) {
+  return d.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+}
+---
+
+<Base title="Ryan Suzuki — Field Notes">
+  <header class="site-header">
+    <h1 class="site-title">Ryan Suzuki<span>.</span></h1>
+    <p class="site-subtitle">Field notes &amp; deep dives · IT infrastructure</p>
+  </header>
+
+  <div class="filter-bar">
+    <span class="filter-label">Filter</span>
+    {allTags.map(tag => (
+      <button
+        class="tag-btn"
+        data-tag={tag}
+        aria-pressed="false"
+      >
+        #{tag}
+      </button>
+    ))}
+  </div>
+
+  <main class="posts-container">
+    <div class="posts-grid" id="posts-grid">
+      {sorted.map(post => (
+        <a
+          href={`/posts/${post.slug}`}
+          class="post-card"
+          data-tags={post.data.tags.join(',')}
+        >
+          <div class="post-meta">
+            <span class="post-date">{formatDate(post.data.date)}</span>
+            <span class={`post-type-badge ${post.data.type}`}>
+              {post.data.type === 'log' ? 'Log' : 'Post'}
+            </span>
+          </div>
+          <h2 class="post-title">{post.data.title}</h2>
+          {post.data.description && (
+            <p class="post-description">{post.data.description}</p>
+          )}
+          <div class="post-tags">
+            {post.data.tags.map(tag => (
+              <span class="post-tag">{tag}</span>
+            ))}
+          </div>
+        </a>
+      ))}
+      <div class="empty-state" id="empty-state" style="display:none">
+        no posts match the selected tags
+      </div>
+    </div>
+  </main>
+</Base>
+
+<script>
+  // Default: work is selected
+  const DEFAULT_TAGS = new Set<string>(['work']);
+  const selected = new Set<string>(DEFAULT_TAGS);
+
+  const cards = document.querySelectorAll<HTMLElement>('.post-card');
+  const buttons = document.querySelectorAll<HTMLButtonElement>('[data-tag]');
+  const emptyState = document.getElementById('empty-state')!;
+
+  function applyFilter() {
+    let visible = 0;
+
+    cards.forEach(card => {
+      const tags = card.dataset.tags?.split(',') ?? [];
+      // Show if any of the card's tags are in the selected set
+      const show = selected.size === 0 || tags.some(t => selected.has(t));
+      card.style.display = show ? '' : 'none';
+      if (show) visible++;
+    });
+
+    emptyState.style.display = visible === 0 ? '' : 'none';
+
+    buttons.forEach(btn => {
+      const tag = btn.dataset.tag!;
+      const active = selected.has(tag);
+      btn.classList.toggle('active', active);
+      btn.setAttribute('aria-pressed', String(active));
+    });
+  }
+
+  buttons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const tag = btn.dataset.tag!;
+      if (selected.has(tag)) {
+        selected.delete(tag);
+      } else {
+        selected.add(tag);
+      }
+      applyFilter();
+    });
+  });
+
+  // Run on load
+  applyFilter();
+</script>
